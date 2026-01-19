@@ -79,55 +79,6 @@
       border-radius: 999px;
     }
 
-    .recent-draws {
-      width: min(520px, 95vw);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      background: rgba(20, 26, 43, 0.7);
-      border-radius: 20px;
-      padding: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .recent-draws h2 {
-      margin: 0;
-      font-size: 18px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 2px;
-    }
-
-    .recent-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-    }
-
-    .recent-item {
-      min-width: 70px;
-      padding: 10px 16px;
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.08);
-      font-size: 22px;
-      font-weight: 700;
-      text-align: center;
-      color: var(--text);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-    }
-
-    .recent-item.latest {
-      background: rgba(255, 204, 0, 0.5);
-      color: #1c1c1c;
-      border-color: rgba(255, 204, 0, 0.9);
-    }
-
-    .recent-empty {
-      color: var(--muted);
-      font-size: 14px;
-      text-align: center;
-    }
 
     .admin-panel {
       width: min(520px, 95vw);
@@ -276,12 +227,6 @@
       <div class="counter" id="counter">0 / 90 numéros tirés</div>
     </main>
 
-    <section class="recent-draws">
-      <h2>5 derniers numéros</h2>
-      <div class="recent-list" id="recent-list"></div>
-      <div class="recent-empty" id="recent-empty">Aucun numéro saisi.</div>
-    </section>
-
     <div class="admin-panel" id="admin-panel">
       <h3>Console opérateur</h3>
       <input type="number" id="number-input" placeholder="Saisir un numéro (1-90)" min="1" max="90" />
@@ -321,8 +266,6 @@
 
     const lastNumberEl = document.getElementById("last-number");
     const counterEl = document.getElementById("counter");
-    const recentList = document.getElementById("recent-list");
-    const recentEmpty = document.getElementById("recent-empty");
     const numberInput = document.getElementById("number-input");
     const statusMessage = document.getElementById("status-message");
     const eventLog = document.getElementById("event-log");
@@ -330,24 +273,6 @@
     const overlayMessage = document.getElementById("overlay-message");
     const announcementSound = document.getElementById("announcement-sound");
 
-    const renderRecent = () => {
-      recentList.innerHTML = "";
-      const recent = state.draws.slice(-5);
-      if (recent.length === 0) {
-        recentEmpty.style.display = "block";
-        return;
-      }
-      recentEmpty.style.display = "none";
-      recent.forEach((value, index) => {
-        const item = document.createElement("div");
-        item.className = "recent-item";
-        if (index === recent.length - 1) {
-          item.classList.add("latest");
-        }
-        item.textContent = value;
-        recentList.appendChild(item);
-      });
-    };
 
     const renderCounter = () => {
       counterEl.textContent = `${state.draws.length} / 90 numéros tirés`;
@@ -397,7 +322,6 @@
     const updateUI = () => {
       renderLastNumber();
       renderCounter();
-      renderRecent();
       renderEvents();
     };
 
