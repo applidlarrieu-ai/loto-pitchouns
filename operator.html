@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Loto associatif - Console opérateur</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0f1a;
+      --panel: #141a2b;
+      --accent: #ffcc00;
+      --accent-strong: #ffdd55;
+      --text: #f5f7ff;
+      --muted: #9aa4c0;
+      --danger: #ff5c5c;
+      --success: #6ee7b7;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      background: radial-gradient(circle at top, #141a2b 0%, #0b0f1a 55%, #070a12 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: stretch;
+    }
+
+    .app {
+      position: relative;
+      width: min(980px, 100%);
+      min-height: 100vh;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      padding: 24px 16px 140px;
+    }
+
+    .main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 20px;
+      background: rgba(15, 19, 32, 0.7);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .last-number {
+      font-size: clamp(120px, 18vw, 220px);
+      font-weight: 800;
+      line-height: 1;
+      color: var(--accent);
+      text-shadow: 0 8px 30px rgba(255, 204, 0, 0.25);
+    }
+
+    .last-label {
+      font-size: clamp(20px, 2.5vw, 34px);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: var(--muted);
+    }
+
+    .counter {
+      font-size: clamp(14px, 1.8vw, 22px);
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.06);
+      padding: 8px 16px;
+      border-radius: 999px;
+    }
+
+
+    .admin-panel {
+      width: min(520px, 95vw);
+      background: rgba(12, 15, 28, 0.92);
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .admin-panel h3 {
+      margin: 0;
+      font-size: 18px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .admin-panel input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      font-size: 20px;
+      text-align: center;
+    }
+
+    .admin-panel button {
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: none;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #121212;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #112019;
+    }
+
+    .admin-panel button:hover {
+      filter: brightness(1.05);
+    }
+
+    .admin-panel .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .announcement-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .status-message {
+      min-height: 20px;
+      font-size: 14px;
+      color: var(--accent-strong);
+    }
+
+    .event-log {
+      font-size: 12px;
+      color: var(--muted);
+      max-height: 120px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .event-log strong {
+      color: var(--text);
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(6, 8, 15, 0.88);
+      z-index: 10;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .overlay-message {
+      font-size: clamp(60px, 12vw, 160px);
+      font-weight: 900;
+      color: var(--accent);
+      text-align: center;
+      text-shadow: 0 10px 30px rgba(255, 204, 0, 0.4);
+      animation: pop 0.6s ease;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.8); opacity: 0.3; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        padding-bottom: 120px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <main class="main">
+      <div class="last-number" id="last-number">--</div>
+      <div class="last-label">Dernier numéro tiré</div>
+      <div class="counter" id="counter">0 / 90 numéros tirés</div>
+    </main>
+
+    <div class="admin-panel" id="admin-panel">
+      <h3>Console opérateur</h3>
+      <input type="number" id="number-input" placeholder="Saisir un numéro (1-90)" min="1" max="90" />
+      <button class="btn-primary" id="validate-btn">Valider le numéro</button>
+      <div class="btn-row">
+        <button class="btn-secondary" id="undo-btn">Annuler le dernier</button>
+        <button class="btn-danger" id="reset-btn">Réinitialiser</button>
+      </div>
+      <div class="announcement-row">
+        <button class="btn-success" data-announcement="Quine">Quine validée</button>
+        <button class="btn-success" data-announcement="Double quine">Double quine validée</button>
+        <button class="btn-success" data-announcement="Carton plein">Carton plein validé</button>
+      </div>
+      <div class="status-message" id="status-message"></div>
+      <div class="event-log" id="event-log"></div>
+      <div class="hint">Raccourcis : chiffres + Entrée, Backspace (annuler), R (reset).</div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="overlay-message" id="overlay-message"></div>
+  </div>
+
+  <audio id="announcement-sound" preload="auto">
+    <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=" type="audio/wav" />
+  </audio>
+
+  <script>
+    const storageKey = "loto-associatif-state";
+    let lastAnnouncementSeen = null;
+
+    const state = {
+      draws: [],
+      events: [],
+      lastAnnouncement: null
+    };
+
+    const lastNumberEl = document.getElementById("last-number");
+    const counterEl = document.getElementById("counter");
+    const numberInput = document.getElementById("number-input");
+    const statusMessage = document.getElementById("status-message");
+    const eventLog = document.getElementById("event-log");
+    const overlay = document.getElementById("overlay");
+    const overlayMessage = document.getElementById("overlay-message");
+    const announcementSound = document.getElementById("announcement-sound");
+
+
+    const renderCounter = () => {
+      counterEl.textContent = `${state.draws.length} / 90 numéros tirés`;
+    };
+
+    const renderLastNumber = () => {
+      if (state.draws.length === 0) {
+        lastNumberEl.textContent = "--";
+        return;
+      }
+      lastNumberEl.textContent = state.draws[state.draws.length - 1];
+    };
+
+    const renderEvents = () => {
+      if (state.events.length === 0) {
+        eventLog.innerHTML = "Aucun événement encore.";
+        return;
+      }
+      eventLog.innerHTML = state.events
+        .map((event) => `<div><strong>${event.label}</strong> — tirage #${event.drawCount} (${event.numberLabel})</div>`)
+        .join("");
+    };
+
+    const saveState = () => {
+      localStorage.setItem(storageKey, JSON.stringify(state));
+    };
+
+    const loadState = () => {
+      const saved = localStorage.getItem(storageKey);
+      if (!saved) return;
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed.draws)) {
+          state.draws = parsed.draws;
+        }
+        if (Array.isArray(parsed.events)) {
+          state.events = parsed.events;
+        }
+        if (parsed.lastAnnouncement) {
+          state.lastAnnouncement = parsed.lastAnnouncement;
+        }
+      } catch (error) {
+        console.warn("État localStorage illisible", error);
+      }
+    };
+
+    const updateUI = () => {
+      renderLastNumber();
+      renderCounter();
+      renderEvents();
+    };
+
+    const showStatus = (message, tone = "") => {
+      statusMessage.textContent = message;
+      statusMessage.style.color = tone === "error" ? "#ff5c5c" : "#ffdd55";
+      setTimeout(() => {
+        if (statusMessage.textContent === message) {
+          statusMessage.textContent = "";
+        }
+      }, 3000);
+    };
+
+    const addDraw = (value) => {
+      if (Number.isNaN(value) || value < 1 || value > 90) {
+        showStatus("Numéro invalide (1 à 90).", "error");
+        return;
+      }
+      if (state.draws.includes(value)) {
+        showStatus("Doublon refusé : numéro déjà tiré.", "error");
+        return;
+      }
+      state.draws.push(value);
+      saveState();
+      updateUI();
+      showStatus(`Numéro ${value} validé.`);
+    };
+
+    const undoDraw = () => {
+      if (state.draws.length === 0) {
+        showStatus("Aucun numéro à annuler.", "error");
+        return;
+      }
+      const removed = state.draws.pop();
+      saveState();
+      updateUI();
+      showStatus(`Dernier numéro (${removed}) annulé.`);
+    };
+
+    const resetGame = () => {
+      const confirmed = window.confirm("Confirmer la réinitialisation de la partie ?");
+      if (!confirmed) return;
+      state.draws = [];
+      state.events = [];
+      state.lastAnnouncement = null;
+      saveState();
+      updateUI();
+      showStatus("Partie réinitialisée.");
+    };
+
+    const showAnnouncement = (announcement) => {
+      overlayMessage.textContent = `${announcement.label} !`;
+      overlay.classList.add("active");
+      try {
+        announcementSound.currentTime = 0;
+        announcementSound.play();
+      } catch (error) {
+        console.warn("Lecture audio bloquée", error);
+      }
+      setTimeout(() => {
+        overlay.classList.remove("active");
+      }, 3000);
+    };
+
+    const maybeShowAnnouncement = () => {
+      if (!state.lastAnnouncement) return;
+      if (state.lastAnnouncement.id === lastAnnouncementSeen) return;
+      lastAnnouncementSeen = state.lastAnnouncement.id;
+      showAnnouncement(state.lastAnnouncement);
+    };
+
+    const triggerAnnouncement = (label) => {
+      const drawCount = state.draws.length;
+      const numberLabel = drawCount > 0 ? `n°${state.draws[drawCount - 1]}` : "aucun tirage";
+      const announcement = {
+        id: `${Date.now()}-${label}`,
+        label: label.toUpperCase(),
+        timestamp: Date.now()
+      };
+      state.events.unshift({
+        label: announcement.label,
+        drawCount,
+        numberLabel
+      });
+      state.lastAnnouncement = announcement;
+      saveState();
+      renderEvents();
+      showAnnouncement(announcement);
+    };
+
+    document.getElementById("validate-btn").addEventListener("click", () => {
+      const value = Number.parseInt(numberInput.value, 10);
+      addDraw(value);
+      numberInput.value = "";
+      numberInput.focus();
+    });
+
+    document.getElementById("undo-btn").addEventListener("click", undoDraw);
+    document.getElementById("reset-btn").addEventListener("click", resetGame);
+
+    document.querySelectorAll("[data-announcement]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const label = button.dataset.announcement;
+        triggerAnnouncement(label);
+      });
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        if (document.activeElement !== numberInput) {
+          numberInput.focus();
+        }
+        const value = Number.parseInt(numberInput.value, 10);
+        if (numberInput.value !== "") {
+          addDraw(value);
+          numberInput.value = "";
+        }
+      }
+      if (event.key === "Backspace") {
+        undoDraw();
+      }
+      if (event.key.toLowerCase() === "r") {
+        resetGame();
+      }
+    });
+
+    window.addEventListener("storage", (event) => {
+      if (event.key !== storageKey) return;
+      loadState();
+      updateUI();
+      maybeShowAnnouncement();
+    });
+
+    loadState();
+    updateUI();
+    maybeShowAnnouncement();
+  </script>
+</body>
+</html>

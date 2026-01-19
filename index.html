@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Loto associatif - Affichage projecteur</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0f1a;
+      --panel: #141a2b;
+      --accent: #ffcc00;
+      --accent-strong: #ffdd55;
+      --text: #f5f7ff;
+      --muted: #9aa4c0;
+      --danger: #ff5c5c;
+      --success: #6ee7b7;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      background: radial-gradient(circle at top, #141a2b 0%, #0b0f1a 55%, #070a12 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: stretch;
+    }
+
+    .app {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(140px, 220px) 1fr minmax(140px, 220px);
+      grid-template-rows: 110px 1fr 110px;
+      gap: 16px;
+      padding: 16px;
+    }
+
+    .logo-band {
+      background: rgba(20, 26, 43, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .logo-band.horizontal {
+      grid-column: 1 / 4;
+      flex-direction: row;
+    }
+
+    .logo-band.vertical {
+      flex-direction: column;
+    }
+
+    .logo-strip {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      animation: marquee 25s linear infinite;
+    }
+
+    .logo-band.vertical .logo-strip {
+      flex-direction: column;
+      animation: marquee-vertical 25s linear infinite;
+    }
+
+    .logo-strip img {
+      height: 60px;
+      width: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+      opacity: 0.9;
+    }
+
+    .logo-band.vertical img {
+      height: 70px;
+    }
+
+    @keyframes marquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    @keyframes marquee-vertical {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-50%); }
+    }
+
+    .main {
+      grid-column: 2 / 3;
+      grid-row: 2 / 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 20px;
+      background: rgba(15, 19, 32, 0.7);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .last-number {
+      font-size: clamp(140px, 22vw, 260px);
+      font-weight: 800;
+      line-height: 1;
+      color: var(--accent);
+      text-shadow: 0 8px 30px rgba(255, 204, 0, 0.25);
+    }
+
+    .last-label {
+      font-size: clamp(22px, 3vw, 40px);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: var(--muted);
+    }
+
+    .counter {
+      font-size: clamp(20px, 2.5vw, 34px);
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+      padding: 10px 20px;
+      border-radius: 999px;
+    }
+
+    .recent-draws {
+      grid-column: 2 / 3;
+      grid-row: 3 / 4;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: rgba(20, 26, 43, 0.7);
+      border-radius: 20px;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      align-items: center;
+    }
+
+    .recent-draws h2 {
+      margin: 0;
+      font-size: 20px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .recent-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .recent-item {
+      min-width: 80px;
+      padding: 12px 18px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 28px;
+      font-weight: 700;
+      text-align: center;
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .recent-item.latest {
+      background: rgba(255, 204, 0, 0.5);
+      color: #1c1c1c;
+      border-color: rgba(255, 204, 0, 0.9);
+    }
+
+    .recent-empty {
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(6, 8, 15, 0.88);
+      z-index: 10;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .overlay-message {
+      font-size: clamp(60px, 12vw, 160px);
+      font-weight: 900;
+      color: var(--accent);
+      text-align: center;
+      text-shadow: 0 10px 30px rgba(255, 204, 0, 0.4);
+      animation: pop 0.6s ease;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.8); opacity: 0.3; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr auto;
+      }
+
+      .logo-band.horizontal,
+      .logo-band.vertical {
+        grid-column: 1 / 2;
+      }
+
+      .main {
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
+      }
+
+      .recent-draws {
+        grid-column: 1 / 2;
+        grid-row: 3 / 4;
+      }
+
+      .logo-band.vertical {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="logo-band horizontal" id="logo-top">
+      <div class="logo-strip" id="logo-strip-top"></div>
+    </div>
+
+    <div class="logo-band vertical" id="logo-left">
+      <div class="logo-strip" id="logo-strip-left"></div>
+    </div>
+
+    <main class="main">
+      <div class="last-number" id="last-number">--</div>
+      <div class="last-label">Dernier numéro tiré</div>
+      <div class="counter" id="counter">0 / 90 numéros tirés</div>
+    </main>
+
+    <div class="logo-band vertical" id="logo-right">
+      <div class="logo-strip" id="logo-strip-right"></div>
+    </div>
+
+    <section class="recent-draws">
+      <h2>5 derniers numéros</h2>
+      <div class="recent-list" id="recent-list"></div>
+      <div class="recent-empty" id="recent-empty">Aucun numéro saisi.</div>
+    </section>
+
+    <div class="logo-band horizontal" id="logo-bottom">
+      <div class="logo-strip" id="logo-strip-bottom"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="overlay-message" id="overlay-message"></div>
+  </div>
+
+  <script>
+    // Configuration simple : liste des logos à afficher (remplacer les fichiers dans /assets/logos).
+    const logoFiles = [
+      "assets/logos/logo-1.svg",
+      "assets/logos/logo-2.svg",
+      "assets/logos/logo-3.svg",
+      "assets/logos/logo-4.svg"
+    ];
+
+    const storageKey = "loto-associatif-state";
+    let lastAnnouncementSeen = null;
+
+    const state = {
+      draws: [],
+      lastAnnouncement: null
+    };
+
+    const lastNumberEl = document.getElementById("last-number");
+    const counterEl = document.getElementById("counter");
+    const recentList = document.getElementById("recent-list");
+    const recentEmpty = document.getElementById("recent-empty");
+    const overlay = document.getElementById("overlay");
+    const overlayMessage = document.getElementById("overlay-message");
+
+    const renderRecent = () => {
+      recentList.innerHTML = "";
+      const recent = state.draws.slice(-5);
+      if (recent.length === 0) {
+        recentEmpty.style.display = "block";
+        return;
+      }
+      recentEmpty.style.display = "none";
+      recent.forEach((value, index) => {
+        const item = document.createElement("div");
+        item.className = "recent-item";
+        if (index === recent.length - 1) {
+          item.classList.add("latest");
+        }
+        item.textContent = value;
+        recentList.appendChild(item);
+      });
+    };
+
+    const renderCounter = () => {
+      counterEl.textContent = `${state.draws.length} / 90 numéros tirés`;
+    };
+
+    const renderLastNumber = () => {
+      if (state.draws.length === 0) {
+        lastNumberEl.textContent = "--";
+        return;
+      }
+      lastNumberEl.textContent = state.draws[state.draws.length - 1];
+    };
+
+    const updateUI = () => {
+      renderLastNumber();
+      renderCounter();
+      renderRecent();
+    };
+
+    const loadState = () => {
+      const saved = localStorage.getItem(storageKey);
+      if (!saved) return;
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed.draws)) {
+          state.draws = parsed.draws;
+        }
+        if (parsed.lastAnnouncement) {
+          state.lastAnnouncement = parsed.lastAnnouncement;
+        }
+      } catch (error) {
+        console.warn("État localStorage illisible", error);
+      }
+    };
+
+    const showAnnouncement = (announcement) => {
+      overlayMessage.textContent = `${announcement.label} !`;
+      overlay.classList.add("active");
+      setTimeout(() => {
+        overlay.classList.remove("active");
+      }, 3000);
+    };
+
+    const maybeShowAnnouncement = () => {
+      if (!state.lastAnnouncement) return;
+      if (state.lastAnnouncement.id === lastAnnouncementSeen) return;
+      const ageMs = Date.now() - state.lastAnnouncement.timestamp;
+      if (Number.isFinite(ageMs) && ageMs > 15000) {
+        lastAnnouncementSeen = state.lastAnnouncement.id;
+        return;
+      }
+      lastAnnouncementSeen = state.lastAnnouncement.id;
+      showAnnouncement(state.lastAnnouncement);
+    };
+
+    const setupLogos = () => {
+      const makeStrip = (container) => {
+        const fragment = document.createDocumentFragment();
+        [...logoFiles, ...logoFiles].forEach((file) => {
+          const img = document.createElement("img");
+          img.src = file;
+          img.alt = "Logo partenaire";
+          fragment.appendChild(img);
+        });
+        container.appendChild(fragment);
+      };
+
+      makeStrip(document.getElementById("logo-strip-top"));
+      makeStrip(document.getElementById("logo-strip-bottom"));
+      makeStrip(document.getElementById("logo-strip-left"));
+      makeStrip(document.getElementById("logo-strip-right"));
+    };
+
+    window.addEventListener("storage", (event) => {
+      if (event.key !== storageKey) return;
+      loadState();
+      updateUI();
+      maybeShowAnnouncement();
+    });
+
+    loadState();
+    updateUI();
+    setupLogos();
+    maybeShowAnnouncement();
+  </script>
+</body>
+</html>

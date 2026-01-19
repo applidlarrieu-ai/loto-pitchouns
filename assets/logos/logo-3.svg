@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="80" viewBox="0 0 200 80" role="img" aria-label="Logo partenaire 3">
+  <rect width="200" height="80" rx="14" fill="#1a2238" />
+  <polygon points="40,16 60,64 20,64" fill="#ff5c5c" />
+  <text x="75" y="48" fill="#f5f7ff" font-family="Arial, sans-serif" font-size="22" font-weight="700">Association</text>
+</svg>

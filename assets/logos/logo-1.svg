@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="80" viewBox="0 0 200 80" role="img" aria-label="Logo partenaire 1">
+  <rect width="200" height="80" rx="14" fill="#1f2a44" />
+  <circle cx="40" cy="40" r="22" fill="#ffcc00" />
+  <text x="75" y="48" fill="#f5f7ff" font-family="Arial, sans-serif" font-size="22" font-weight="700">Partenaire</text>
+</svg>
